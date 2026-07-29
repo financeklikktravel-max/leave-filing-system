@@ -17,41 +17,55 @@ writing directly to your Google Sheet.
 
 ## Setup
 
-1. **Create a Google Sheet** with two tabs:
+This is wired up for the existing Klikk Travel leave credits sheet:
+https://docs.google.com/spreadsheets/d/13boJkfbEZi9qm_5a4r10IC6EeLNdH82eDQdGlg-MfnY
 
-   **Leave Credits**
+1. **The first tab** of that spreadsheet already has the credits table
+   (`Employee's Name | Leave With Pay | Leave W/O Pay | Sick Leave |
+   Remaining Credits`) — no changes needed there. `Code.gs` reads/writes it
+   by column header, so header wording can vary in casing/spacing as long as
+   each contains "NAME", "WITH PAY", "W/O PAY", "SICK", and "REMAINING".
 
-   | Employee Name | Email | Vacation Credits | Sick Credits | Emergency Credits |
-   |---|---|---|---|---|
-   | Jane Doe | jane@klikktravel.com | 15 | 10 | 3 |
+   Employees are matched **by name** (case-insensitive, trimmed) since there
+   is no email column — the name typed in the form must match the sheet
+   exactly. To avoid typos, `index.html` uses a dropdown pre-filled with the
+   25 current employee names. **If you add/remove employees, update both**
+   the credits sheet and the `<select id="name">` options in `index.html`.
 
-   **Leave Requests** (header row only — rows are appended automatically)
+2. **Add one new tab** to the same spreadsheet, named exactly
+   `Leave Requests`, with this header row only (rows are appended
+   automatically by the script):
 
    | Timestamp | Employee Name | Email | Leave Type | Start Date | End Date | Days Requested | Reason | Status | Remaining Credits |
    |---|---|---|---|---|---|---|---|---|---|
 
-2. **Add the backend script**: in the Sheet, go to `Extensions > Apps Script`,
+3. **Add the backend script**: in the Sheet, go to `Extensions > Apps Script`,
    paste the contents of `apps-script/Code.gs`, and save.
 
-3. **Deploy as a Web App**: `Deploy > New deployment > Web app`.
+4. **Deploy as a Web App**: `Deploy > New deployment > Web app`.
    - Execute as: **Me**
    - Who has access: **Anyone**
    - Copy the resulting Web App URL.
 
-4. **Configure the form**: paste that URL into `config.js`:
+5. **Configure the form**: paste that URL into `config.js`:
 
    ```js
    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/XXXXX/exec";
    ```
 
-5. **Host the form**: enable GitHub Pages for this repo (Settings > Pages >
+6. **Host the form**: enable GitHub Pages for this repo (Settings > Pages >
    deploy from `main` branch, root folder), or open `index.html` locally to
    test.
 
 ## Notes
 
-- "Unpaid" leave is logged but does not deduct any credit balance.
+- **Leave W/O Pay** is deducted the same as the other two leave types, since
+  the sheet gives it a tracked balance (5 days) rather than treating it as
+  unlimited.
+- "Remaining Credits" is recalculated automatically after every approved
+  request, as the sum of the employee's remaining Leave With Pay, Leave W/O
+  Pay, and Sick Leave balances.
 - Re-deploy the Apps Script Web App (as a **new version**) after editing
   `Code.gs`, otherwise changes won't take effect.
-- Employee lookup is by email, so the email entered in the form must match
-  the email in the **Leave Credits** sheet exactly.
+- Employee lookup is by **name**, so the name selected in the form must match
+  the name in the credits sheet exactly (case/whitespace-insensitive).
