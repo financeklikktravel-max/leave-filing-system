@@ -24,6 +24,7 @@ form.addEventListener("submit", async (e) => {
   }
 
   const payload = {
+    action: "submit",
     name: form.name.value.trim(),
     email: form.email.value.trim(),
     leaveType: form.leaveType.value,
@@ -43,8 +44,8 @@ form.addEventListener("submit", async (e) => {
     });
     const data = await response.json();
 
-    if (data.status === "approved") {
-      showResult(`Request submitted and approved. ${data.daysRequested} day(s) deducted. Remaining ${payload.leaveType} credits: ${data.remainingCredits}.`, false);
+    if (data.status === "pending") {
+      showResult(`Request submitted (${data.daysRequested} day(s)) and is now pending approval.`, false);
       form.reset();
     } else if (data.status === "rejected") {
       showResult(`Request submitted but rejected: ${data.message}`, true);

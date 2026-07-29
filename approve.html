@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Klikk Travel — Leave Approvals</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="approve.css">
+</head>
+<body>
+  <div class="card wide" id="loginCard">
+    <h1>Approver Login</h1>
+    <p class="subtitle">Klikk Travel Inc.</p>
+
+    <form id="loginForm">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" required autocomplete="username">
+
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required autocomplete="current-password">
+
+      <button type="submit" id="loginBtn">Log In</button>
+    </form>
+
+    <div id="loginResult" class="result hidden"></div>
+  </div>
+
+  <div class="card wide hidden" id="dashboardCard">
+    <div class="dashboard-header">
+      <div>
+        <h1>Pending Leave Requests</h1>
+        <p class="subtitle" id="welcomeMessage"></p>
+      </div>
+      <button type="button" id="logoutBtn" class="secondary">Log Out</button>
+    </div>
+
+    <div id="dashboardResult" class="result hidden"></div>
+    <div id="requestList"></div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="approve.js"></script>
+</body>
+</html>
