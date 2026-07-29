@@ -38,7 +38,7 @@ https://docs.google.com/spreadsheets/d/13boJkfbEZi9qm_5a4r10IC6EeLNdH82eDQdGlg-M
 2. **Add a tab** to the same spreadsheet, named exactly `Leave Requests`,
    with this header row (rows are appended automatically by the script):
 
-   | Timestamp | Employee Name | Email | Leave Type | Start Date | End Date | Days Requested | Reason | Status | Remaining Credits | Request ID | Decided By | Decided At |
+   | Timestamp | Employee Name | Email | Leave Type | Start Date | End Date | Days Requested | Reason | Status | Remaining Credits | Request ID | Approved By | Decided At |
    |---|---|---|---|---|---|---|---|---|---|---|---|---|
 
 3. **Add another tab**, named exactly `Approvers`, with this header row.

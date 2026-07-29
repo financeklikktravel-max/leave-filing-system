@@ -9,7 +9,7 @@
 // Expects a tab named exactly "Leave Requests" with columns: Timestamp |
 // Employee Name | Email | Leave Type | Start Date | End Date |
 // Days Requested | Reason | Status | Remaining Credits | Request ID |
-// Decided By | Decided At.
+// Approved By | Decided At.
 //
 // Expects a tab named exactly "Approvers" with columns: Username |
 // Password Hash | Full Name. See generateApproverHash() below for creating
@@ -320,7 +320,7 @@ function requestsColumnIndexes(headerRow) {
     status: headerRow.findIndex((h) => h.indexOf("STATUS") !== -1),
     remainingCredits: headerRow.findIndex((h) => h.indexOf("REMAINING CREDITS") !== -1),
     requestId: headerRow.findIndex((h) => h.indexOf("REQUEST ID") !== -1),
-    decidedBy: headerRow.findIndex((h) => h.indexOf("DECIDED BY") !== -1),
+    decidedBy: headerRow.findIndex((h) => h.indexOf("APPROVED BY") !== -1),
     decidedAt: headerRow.findIndex((h) => h.indexOf("DECIDED AT") !== -1),
   };
 }
