@@ -102,3 +102,14 @@ button:disabled { background: var(--border); cursor: not-allowed; }
 .result.hidden { display: none; }
 .result.success { background: #e6f4ea; color: var(--success); }
 .result.error { background: #fce8e6; color: var(--error); }
+
+.days-preview {
+  margin: -4px 0 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+}
+
+.days-preview.hidden { display: none; }

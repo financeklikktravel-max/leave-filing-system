@@ -81,26 +81,30 @@ function processLeaveRequest(data) {
   const requestId = Utilities.getUuid();
 
   if (employeeRowIndex === -1) {
+    const message = "Employee name not found in credits sheet. It must match exactly.";
     logRequest(requestsSheet, timestamp, data, daysRequested, "Rejected - Employee not found", "", requestId);
-    return { status: "rejected", message: "Employee name not found in credits sheet. It must match exactly." };
+    notifySubmission(data, daysRequested, "rejected", message);
+    return { status: "rejected", message };
   }
 
   if (creditCol === -1) {
+    const message = "Unknown leave type: " + data.leaveType;
     logRequest(requestsSheet, timestamp, data, daysRequested, "Rejected - Unknown leave type", "", requestId);
-    return { status: "rejected", message: "Unknown leave type: " + data.leaveType };
+    notifySubmission(data, daysRequested, "rejected", message);
+    return { status: "rejected", message };
   }
 
   const currentCredits = Number(creditsData[employeeRowIndex][creditCol]) || 0;
 
   if (currentCredits < daysRequested) {
+    const message = `Insufficient ${data.leaveType} credits. Available: ${currentCredits}, requested: ${daysRequested}.`;
     logRequest(requestsSheet, timestamp, data, daysRequested, "Rejected - Insufficient credits", "", requestId);
-    return {
-      status: "rejected",
-      message: `Insufficient ${data.leaveType} credits. Available: ${currentCredits}, requested: ${daysRequested}.`,
-    };
+    notifySubmission(data, daysRequested, "rejected", message);
+    return { status: "rejected", message };
   }
 
   logRequest(requestsSheet, timestamp, data, daysRequested, "Pending Approval", "", requestId);
+  notifySubmission(data, daysRequested, "pending", "");
 
   return { status: "pending", daysRequested, requestId };
 }
@@ -289,6 +293,19 @@ function notifyEmployee(email, name, leaveType, outcome, remainingCredits) {
     MailApp.sendEmail(email, subject, body);
   } catch (mailErr) {
     // Non-fatal: decision already recorded even if email fails.
+  }
+}
+
+function notifySubmission(data, daysRequested, outcome, message) {
+  if (!data.email) return;
+  try {
+    const subject = outcome === "pending" ? "Leave Request Received" : "Leave Request Not Submitted";
+    const body = outcome === "pending"
+      ? `Hi ${data.name},\n\nWe received your ${data.leaveType} leave request from ${data.startDate} to ${data.endDate} (${daysRequested} day(s)).\nIt is now pending approval. You'll get another email once it's been decided.\n\nThank you.`
+      : `Hi ${data.name},\n\nYour ${data.leaveType} leave request from ${data.startDate} to ${data.endDate} (${daysRequested} day(s)) could not be submitted.\nReason: ${message}\n\nThank you.`;
+    MailApp.sendEmail(data.email, subject, body);
+  } catch (mailErr) {
+    // Non-fatal: request already recorded even if email fails.
   }
 }
 
