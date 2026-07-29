@@ -46,7 +46,7 @@ function processLeaveRequest(data) {
   const daysRequested = countDays(data.startDate, data.endDate);
 
   const creditsData = creditsSheet.getDataRange().getValues();
-  const headerRow = creditsData[0].map((h) => String(h).trim().toUpperCase());
+  const headerRow = creditsData[0].map((h) => String(h).trim().toUpperCase().replace(/\s+/g, " "));
 
   const nameCol = headerRow.findIndex((h) => h.indexOf("NAME") !== -1);
   const remainingCol = headerRow.findIndex((h) => h.indexOf("REMAINING") !== -1);
