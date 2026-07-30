@@ -411,3 +411,37 @@ function generateApproverHash() {
   const PASSWORD_TO_HASH = "";
   Logger.log(hashPassword(PASSWORD_TO_HASH));
 }
+
+// One-time cleanup: clears every logged row in "Leave Requests" and resets
+// every employee's Leave With Pay / Leave W/O Pay / Sick Leave back to 5
+// (their original starting balance), clearing Remaining Credits too. Run
+// this manually from the Apps Script editor (select resetTestData in the
+// function dropdown, click Run) when you want to wipe test data and start
+// clean. This cannot be undone.
+function resetTestData() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const creditsSheet = ss.getSheets()[0];
+  const requestsSheet = ss.getSheetByName(REQUESTS_SHEET);
+
+  const creditsData = creditsSheet.getDataRange().getValues();
+  const headerRow = normalizeHeaderRow(creditsData[0]);
+  const withPayCol = headerRow.findIndex((h) => h.indexOf("WITH PAY") !== -1);
+  const woPayCol = headerRow.findIndex((h) => h.indexOf("W/O PAY") !== -1);
+  const sickCol = headerRow.findIndex((h) => h.indexOf("SICK") !== -1);
+  const remainingCol = headerRow.findIndex((h) => h.indexOf("REMAINING") !== -1);
+
+  for (let i = 1; i < creditsData.length; i++) {
+    const row = i + 1;
+    if (withPayCol !== -1) creditsSheet.getRange(row, withPayCol + 1).setValue(5);
+    if (woPayCol !== -1) creditsSheet.getRange(row, woPayCol + 1).setValue(5);
+    if (sickCol !== -1) creditsSheet.getRange(row, sickCol + 1).setValue(5);
+    if (remainingCol !== -1) creditsSheet.getRange(row, remainingCol + 1).setValue("");
+  }
+
+  const lastRow = requestsSheet.getLastRow();
+  if (lastRow > 1) {
+    requestsSheet.getRange(2, 1, lastRow - 1, requestsSheet.getLastColumn()).clearContent();
+  }
+
+  Logger.log("Reset complete: all credits back to 5/5/5, Leave Requests cleared.");
+}
