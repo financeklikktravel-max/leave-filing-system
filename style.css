@@ -1,11 +1,12 @@
 :root {
-  --bg: #f4f6f8;
+  --bg: #eef6f9;
   --card-bg: #ffffff;
-  --primary: #1a73e8;
-  --primary-dark: #1558b0;
-  --text: #202124;
-  --muted: #5f6368;
-  --border: #dadce0;
+  --primary: #159fbf;
+  --primary-dark: #0f7f9a;
+  --accent: #f5a623;
+  --text: #16232b;
+  --muted: #5f7078;
+  --border: #dbe7ea;
   --success: #188038;
   --error: #d93025;
 }
@@ -18,7 +19,10 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg);
+  background:
+    radial-gradient(1200px 600px at 10% -10%, #d6f0f6 0%, transparent 60%),
+    radial-gradient(1000px 500px at 110% 10%, #fdecd2 0%, transparent 55%),
+    var(--bg);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
   color: var(--text);
   padding: 24px;
@@ -26,22 +30,37 @@ body {
 
 .card {
   background: var(--card-bg);
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06);
-  padding: 32px;
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(16,40,48,0.06), 0 12px 32px rgba(16,40,48,0.10);
+  padding: 36px;
   width: 100%;
   max-width: 480px;
+}
+
+.brand {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.brand-logo {
+  width: 110px;
+  height: 110px;
+  object-fit: contain;
 }
 
 h1 {
   font-size: 22px;
   margin: 0 0 4px;
+  color: var(--text);
+  text-align: center;
 }
 
 .subtitle {
   margin: 0 0 24px;
   color: var(--muted);
   font-size: 14px;
+  text-align: center;
 }
 
 form {
@@ -64,11 +83,15 @@ input, select, textarea {
   font-size: 14px;
   font-family: inherit;
   margin-top: 4px;
+  background: #fbfdfe;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(21, 159, 191, 0.15);
+  background: #ffffff;
 }
 
 .row {
@@ -85,12 +108,14 @@ button {
   padding: 12px;
   border-radius: 8px;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
+  transition: background 0.15s ease, transform 0.05s ease;
 }
 
 button:hover { background: var(--primary-dark); }
-button:disabled { background: var(--border); cursor: not-allowed; }
+button:active { transform: translateY(1px); }
+button:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
 
 .result {
   margin-top: 18px;
@@ -105,9 +130,10 @@ button:disabled { background: var(--border); cursor: not-allowed; }
 
 .days-preview {
   margin: -4px 0 0;
-  padding: 8px 12px;
+  padding: 10px 12px;
   border-radius: 8px;
-  background: var(--bg);
+  background: #f0f9fb;
+  border: 1px solid var(--border);
   color: var(--text);
   font-size: 13px;
 }
