@@ -27,7 +27,14 @@ const LEAVE_TYPE_MATCH = {
 
 function doPost(e) {
   const lock = LockService.getScriptLock();
-  lock.waitLock(10000);
+  try {
+    lock.waitLock(10000);
+  } catch (lockErr) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "error",
+      message: "Server is busy handling another request. Please try again in a moment.",
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
 
   try {
     const data = JSON.parse(e.postData.contents);
