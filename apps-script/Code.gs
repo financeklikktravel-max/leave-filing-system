@@ -40,6 +40,8 @@ function doPost(e) {
       result = login(data.username, data.password);
     } else if (action === "listPending") {
       result = listPendingRequests(data.token);
+    } else if (action === "listDecided") {
+      result = listDecidedRequests(data.token);
     } else if (action === "decide") {
       result = decideRequest(data.token, data.requestId, data.decision);
     } else {
@@ -201,6 +203,45 @@ function listPendingRequests(token) {
   }
 
   return { status: "ok", requests: pending };
+}
+
+function listDecidedRequests(token) {
+  const session = requireSession(token);
+  if (!session) {
+    return { status: "error", message: "Session expired. Please log in again." };
+  }
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const requestsSheet = ss.getSheetByName(REQUESTS_SHEET);
+  const data = requestsSheet.getDataRange().getValues();
+  const headerRow = normalizeHeaderRow(data[0]);
+  const cols = requestsColumnIndexes(headerRow);
+
+  const decided = [];
+  for (let i = 1; i < data.length; i++) {
+    const status = String(data[i][cols.status]).trim();
+    if (status === "Approved" || status === "Rejected by Approver") {
+      const decidedAtValue = data[i][cols.decidedAt];
+      decided.push({
+        requestId: data[i][cols.requestId],
+        name: data[i][cols.name],
+        email: data[i][cols.email],
+        leaveType: data[i][cols.leaveType],
+        startDate: data[i][cols.startDate],
+        endDate: data[i][cols.endDate],
+        daysRequested: data[i][cols.daysRequested],
+        reason: data[i][cols.reason],
+        status: status,
+        approvedBy: data[i][cols.decidedBy],
+        decidedAt: decidedAtValue instanceof Date
+          ? Utilities.formatDate(decidedAtValue, Session.getScriptTimeZone(), "MMM d, yyyy h:mm a")
+          : decidedAtValue,
+      });
+    }
+  }
+
+  decided.reverse();
+  return { status: "ok", requests: decided.slice(0, 50) };
 }
 
 function decideRequest(token, requestId, decision) {

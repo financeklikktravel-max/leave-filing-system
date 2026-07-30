@@ -4,9 +4,14 @@ const loginForm = document.getElementById("loginForm");
 const loginBtn = document.getElementById("loginBtn");
 const loginResult = document.getElementById("loginResult");
 const dashboardResult = document.getElementById("dashboardResult");
+const dashboardTitle = document.getElementById("dashboardTitle");
 const welcomeMessage = document.getElementById("welcomeMessage");
 const requestList = document.getElementById("requestList");
 const logoutBtn = document.getElementById("logoutBtn");
+const tabPending = document.getElementById("tabPending");
+const tabHistory = document.getElementById("tabHistory");
+
+let activeTab = "pending";
 
 function showMessage(box, message, isError) {
   box.textContent = message;
@@ -47,7 +52,7 @@ function showDashboard(fullName) {
   loginCard.classList.add("hidden");
   dashboardCard.classList.remove("hidden");
   welcomeMessage.textContent = `Signed in as ${fullName}`;
-  loadPendingRequests();
+  switchTab("pending");
 }
 
 function showLogin() {
@@ -94,6 +99,23 @@ logoutBtn.addEventListener("click", () => {
   showLogin();
 });
 
+function switchTab(tab) {
+  activeTab = tab;
+  tabPending.classList.toggle("active", tab === "pending");
+  tabHistory.classList.toggle("active", tab === "history");
+  dashboardTitle.textContent = tab === "pending" ? "Pending Leave Requests" : "Decided Leave Requests";
+  hideMessage(dashboardResult);
+
+  if (tab === "pending") {
+    loadPendingRequests();
+  } else {
+    loadHistory();
+  }
+}
+
+tabPending.addEventListener("click", () => switchTab("pending"));
+tabHistory.addEventListener("click", () => switchTab("history"));
+
 async function loadPendingRequests() {
   const session = getSession();
   if (!session) {
@@ -102,7 +124,6 @@ async function loadPendingRequests() {
   }
 
   requestList.innerHTML = '<p class="empty-state">Loading...</p>';
-  hideMessage(dashboardResult);
 
   try {
     const data = await callBackend({ action: "listPending", token: session.token });
@@ -114,14 +135,40 @@ async function loadPendingRequests() {
       return;
     }
 
-    renderRequests(data.requests);
+    renderPending(data.requests);
   } catch (err) {
     requestList.innerHTML = "";
     showMessage(dashboardResult, "Could not reach the server. Please try again later.", true);
   }
 }
 
-function renderRequests(requests) {
+async function loadHistory() {
+  const session = getSession();
+  if (!session) {
+    showLogin();
+    return;
+  }
+
+  requestList.innerHTML = '<p class="empty-state">Loading...</p>';
+
+  try {
+    const data = await callBackend({ action: "listDecided", token: session.token });
+
+    if (data.status !== "ok") {
+      clearSession();
+      showLogin();
+      showMessage(loginResult, data.message || "Session expired. Please log in again.", true);
+      return;
+    }
+
+    renderHistory(data.requests);
+  } catch (err) {
+    requestList.innerHTML = "";
+    showMessage(dashboardResult, "Could not reach the server. Please try again later.", true);
+  }
+}
+
+function renderPending(requests) {
   requestList.innerHTML = "";
 
   if (!requests.length) {
@@ -150,6 +197,33 @@ function renderRequests(requests) {
   });
 }
 
+function renderHistory(requests) {
+  requestList.innerHTML = "";
+
+  if (!requests.length) {
+    requestList.innerHTML = '<p class="empty-state">No decided requests yet.</p>';
+    return;
+  }
+
+  requests.forEach((req) => {
+    const isApproved = req.status === "Approved";
+    const badgeClass = isApproved ? "approved" : "rejected";
+    const badgeText = isApproved ? "Approved" : "Rejected";
+
+    const item = document.createElement("div");
+    item.className = "request-item";
+    item.innerHTML = `
+      <div class="request-title">${escapeHtml(req.name)} — ${escapeHtml(req.leaveType)}<span class="status-badge ${badgeClass}">${badgeText}</span></div>
+      <div class="request-meta">${escapeHtml(req.startDate)} to ${escapeHtml(req.endDate)} (${escapeHtml(String(req.daysRequested))} day(s))</div>
+      <div class="request-meta">${escapeHtml(req.email || "")}</div>
+      <div class="request-reason">${escapeHtml(req.reason || "")}</div>
+      <div class="request-meta">Decided by ${escapeHtml(req.approvedBy || "-")} on ${escapeHtml(String(req.decidedAt || "-"))}</div>
+    `;
+
+    requestList.appendChild(item);
+  });
+}
+
 async function decide(req, decision, item) {
   const session = getSession();
   if (!session) {
@@ -158,7 +232,7 @@ async function decide(req, decision, item) {
   }
 
   const buttons = item.querySelectorAll("button");
-  buttons.forEach((b) => (b.disabled = true));
+  buttons.forEach((b) => b.classList.add("busy"));
 
   try {
     const data = await callBackend({
@@ -181,11 +255,11 @@ async function decide(req, decision, item) {
       }
     } else {
       showMessage(dashboardResult, data.message || "Could not process this request.", true);
-      buttons.forEach((b) => (b.disabled = false));
+      buttons.forEach((b) => b.classList.remove("busy"));
     }
   } catch (err) {
     showMessage(dashboardResult, "Could not reach the server. Please try again later.", true);
-    buttons.forEach((b) => (b.disabled = false));
+    buttons.forEach((b) => b.classList.remove("busy"));
   }
 }
 

@@ -28,10 +28,15 @@
   <div class="card wide hidden" id="dashboardCard">
     <div class="dashboard-header">
       <div>
-        <h1>Pending Leave Requests</h1>
+        <h1 id="dashboardTitle">Pending Leave Requests</h1>
         <p class="subtitle" id="welcomeMessage"></p>
       </div>
       <button type="button" id="logoutBtn" class="secondary">Log Out</button>
+    </div>
+
+    <div class="tabs">
+      <button type="button" id="tabPending" class="tab active">Pending</button>
+      <button type="button" id="tabHistory" class="tab">History</button>
     </div>
 
     <div id="dashboardResult" class="result hidden"></div>
