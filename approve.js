@@ -143,14 +143,14 @@ function renderRequests(requests) {
       </div>
     `;
 
-    item.querySelector(".approve-btn").addEventListener("click", () => decide(req.requestId, "approve", item));
-    item.querySelector(".reject-btn").addEventListener("click", () => decide(req.requestId, "reject", item));
+    item.querySelector(".approve-btn").addEventListener("click", () => decide(req, "approve", item));
+    item.querySelector(".reject-btn").addEventListener("click", () => decide(req, "reject", item));
 
     requestList.appendChild(item);
   });
 }
 
-async function decide(requestId, decision, item) {
+async function decide(req, decision, item) {
   const session = getSession();
   if (!session) {
     showLogin();
@@ -164,11 +164,17 @@ async function decide(requestId, decision, item) {
     const data = await callBackend({
       action: "decide",
       token: session.token,
-      requestId,
+      requestId: req.requestId,
       decision,
     });
 
     if (data.status === "ok") {
+      const verb = data.decision === "approved" ? "Approved" : "Rejected";
+      showMessage(
+        dashboardResult,
+        `${verb}: ${req.name} — ${req.leaveType}, ${req.startDate} to ${req.endDate} (${req.daysRequested} day(s)).`,
+        false
+      );
       item.remove();
       if (!requestList.children.length) {
         requestList.innerHTML = '<p class="empty-state">No pending requests right now.</p>';
