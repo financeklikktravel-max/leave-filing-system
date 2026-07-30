@@ -194,8 +194,8 @@ function listPendingRequests(token) {
         name: data[i][cols.name],
         email: data[i][cols.email],
         leaveType: data[i][cols.leaveType],
-        startDate: data[i][cols.startDate],
-        endDate: data[i][cols.endDate],
+        startDate: formatDateCell(data[i][cols.startDate]),
+        endDate: formatDateCell(data[i][cols.endDate]),
         daysRequested: data[i][cols.daysRequested],
         reason: data[i][cols.reason],
       });
@@ -227,8 +227,8 @@ function listDecidedRequests(token) {
         name: data[i][cols.name],
         email: data[i][cols.email],
         leaveType: data[i][cols.leaveType],
-        startDate: data[i][cols.startDate],
-        endDate: data[i][cols.endDate],
+        startDate: formatDateCell(data[i][cols.startDate]),
+        endDate: formatDateCell(data[i][cols.endDate]),
         daysRequested: data[i][cols.daysRequested],
         reason: data[i][cols.reason],
         status: status,
@@ -351,6 +351,12 @@ function notifySubmission(data, daysRequested, outcome, message) {
 }
 
 // ---------- Helpers ----------
+
+function formatDateCell(value) {
+  return value instanceof Date
+    ? Utilities.formatDate(value, Session.getScriptTimeZone(), "yyyy-MM-dd")
+    : value;
+}
 
 function normalizeHeaderRow(row) {
   return row.map((h) => String(h).trim().toUpperCase().replace(/\s+/g, " "));
