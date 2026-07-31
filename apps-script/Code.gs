@@ -315,10 +315,10 @@ function decideRequest(token, requestId, decision) {
     return { status: "error", message: `Cannot approve: only ${currentCredits} ${leaveType} credit(s) remain, ${daysRequested} requested.` };
   }
 
-  const updatedCredits = isUnlimited ? currentCredits : currentCredits - daysRequested;
-  if (!isUnlimited) {
-    creditsSheet.getRange(employeeRowIndex + 1, creditCol + 1).setValue(updatedCredits);
-  }
+  // For unlimited types, the column tracks a running total of approved days
+  // used (informational only) instead of a remaining balance.
+  const updatedCredits = isUnlimited ? currentCredits + daysRequested : currentCredits - daysRequested;
+  creditsSheet.getRange(employeeRowIndex + 1, creditCol + 1).setValue(updatedCredits);
 
   if (remainingCol !== -1) {
     const row = creditsData[employeeRowIndex].slice();
