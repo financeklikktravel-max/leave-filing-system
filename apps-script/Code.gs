@@ -324,6 +324,7 @@ function decideRequest(token, requestId, decision) {
     const row = creditsData[employeeRowIndex].slice();
     row[creditCol] = updatedCredits;
     const totalRemaining = Object.keys(LEAVE_TYPE_MATCH)
+      .filter((type) => UNLIMITED_LEAVE_TYPES.indexOf(type) === -1)
       .map((type) => creditsHeader.findIndex((h) => h.indexOf(LEAVE_TYPE_MATCH[type]) !== -1))
       .filter((col) => col !== -1)
       .reduce((sum, col) => sum + (Number(row[col]) || 0), 0);
@@ -450,7 +451,9 @@ function resetTestData() {
   for (let i = 1; i < creditsData.length; i++) {
     const row = i + 1;
     if (withPayCol !== -1) creditsSheet.getRange(row, withPayCol + 1).setValue(5);
-    if (woPayCol !== -1) creditsSheet.getRange(row, woPayCol + 1).setValue(5);
+    if (woPayCol !== -1 && UNLIMITED_LEAVE_TYPES.indexOf("Leave W/O Pay") === -1) {
+      creditsSheet.getRange(row, woPayCol + 1).setValue(5);
+    }
     if (sickCol !== -1) creditsSheet.getRange(row, sickCol + 1).setValue(5);
     if (remainingCol !== -1) creditsSheet.getRange(row, remainingCol + 1).setValue("");
   }
@@ -460,7 +463,7 @@ function resetTestData() {
     requestsSheet.getRange(2, 1, lastRow - 1, requestsSheet.getLastColumn()).clearContent();
   }
 
-  Logger.log("Reset complete: all credits back to 5/5/5, Leave Requests cleared.");
+  Logger.log("Reset complete: Leave With Pay/Sick Leave back to 5 (Leave W/O Pay left untouched since it's unlimited), Leave Requests cleared.");
 }
 
 // One-time cleanup for 2026-07-31: deletes the test row logged while

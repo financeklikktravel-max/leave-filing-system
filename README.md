@@ -84,16 +84,15 @@ https://docs.google.com/spreadsheets/d/13boJkfbEZi9qm_5a4r10IC6EeLNdH82eDQdGlg-M
 ## Notes
 
 - **Leave W/O Pay is unlimited**: it's never checked against balance and
-  never deducted, regardless of what's in the credits sheet for that column.
-  This is controlled by `UNLIMITED_LEAVE_TYPES` near the top of `Code.gs` —
-  add other leave type names there if you want them to behave the same way.
-- **Leave With Pay** is deducted the same as Sick Leave, since the sheet gives
-  it a tracked balance (5 days) rather than treating it as unlimited.
-- Insufficient credits are still auto-rejected at submission time — approvers
-  only see requests that already passed the credit check. Approving
-  re-checks the balance at decision time (in case another request was
-  approved in the meantime) and recalculates "Remaining Credits" as the sum
-  of the employee's remaining Leave With Pay, Leave W/O Pay, and Sick Leave.
+  never deducted, and its column in the credits sheet is left blank/unused.
+  Approved Leave W/O Pay requests are still fully logged in the
+  **Leave Requests** tab, just without touching any credit balance. This is
+  controlled by `UNLIMITED_LEAVE_TYPES` near the top of `Code.gs` — add other
+  leave type names there if you want them to behave the same way.
+- **Leave With Pay** and **Sick Leave** are capped at 5 per year and deducted
+  normally, checked against balance at submission and re-checked at approval.
+- "Remaining Credits" only sums **Leave With Pay + Sick Leave** — Leave W/O
+  Pay (or any other unlimited type) is excluded from that total.
 - Re-deploy the Apps Script Web App (as a **new version**) after editing
   `Code.gs`, otherwise changes won't take effect.
 - Employee lookup is by **name**, so the name selected in the form must match
