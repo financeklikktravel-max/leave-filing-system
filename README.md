@@ -3,7 +3,9 @@
 A lightweight employee leave request form. Submissions are validated against
 each employee's leave credit balance (auto-rejected if insufficient), then
 held as **pending** until an approver reviews them on a separate login-gated
-page. Approving deducts the days used and notifies the employee by email.
+page. Approving deducts the days used and notifies the employee by email. On
+successful submission, a filled-out copy of the official Leave Form is also
+auto-downloaded as a PDF.
 
 ## How it works
 
@@ -13,6 +15,12 @@ page. Approving deducts the days used and notifies the employee by email.
 - `apps-script/Code.gs` — a Google Apps Script backend (deployed as a Web App)
   that receives submissions, checks credits, authenticates approvers, and
   deducts credits / emails the employee once a request is decided.
+- `pdfform.css` + the hidden template in `index.html` + `libs/jspdf.umd.min.js`
+  and `libs/html2canvas.min.js` — render the official Leave Form layout
+  (using `letterhead.png`) and auto-download it as a PDF right after a
+  successful submission. Employee-fillable fields (name, position, branch,
+  dates, leave type, reason) are auto-filled; signature and approval/HRD
+  sections are left blank for manual completion.
 
 No server hosting is required: the form can be hosted on GitHub Pages (or any
 static host), and the Apps Script Web App acts as the backend, reading and

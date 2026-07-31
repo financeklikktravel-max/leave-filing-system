@@ -6,6 +6,7 @@
 <title>Klikk Travel — Leave Request Form</title>
 <link rel="icon" href="logo.png">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="pdfform.css">
 </head>
 <body>
   <div class="card">
@@ -47,6 +48,12 @@
       <label for="email">Email</label>
       <input type="email" id="email" name="email" required>
 
+      <label for="position">Position</label>
+      <input type="text" id="position" name="position" required>
+
+      <label for="branch">Branch</label>
+      <input type="text" id="branch" name="branch" required>
+
       <label for="leaveType">Leave Type</label>
       <select id="leaveType" name="leaveType" required>
         <option value="" disabled selected>Select leave type</option>
@@ -77,6 +84,72 @@
     <div id="result" class="result hidden"></div>
   </div>
 
+  <div id="pdfTemplateWrap">
+    <div id="leaveFormTemplate" class="pdf-page">
+      <img src="letterhead.png" class="pdf-letterhead" alt="Klikk Travel Express">
+      <h2 class="pdf-title">LEAVE FORM</h2>
+
+      <div class="pdf-row">
+        <span><strong>Employee's Name:</strong> <span id="pdfName"></span></span>
+        <span><strong>Date:</strong> <span id="pdfSubmitDate"></span></span>
+      </div>
+      <div class="pdf-row"><span><strong>Position:</strong> <span id="pdfPosition"></span></span></div>
+      <div class="pdf-row"><span><strong>Branch:</strong> <span id="pdfBranch"></span></span></div>
+
+      <p class="pdf-section-title">Dates Requested:</p>
+      <div class="pdf-row">
+        <span><strong>From</strong> <span id="pdfStartDate"></span></span>
+        <span><strong>To</strong> <span id="pdfEndDate"></span></span>
+        <span><strong>No. of days</strong> <span id="pdfDays"></span></span>
+        <span><strong>Back to work</strong> <span id="pdfBackToWork"></span></span>
+      </div>
+
+      <p class="pdf-section-title">Nature of Leave:</p>
+      <div class="pdf-row">
+        <span><span class="pdf-checkbox" id="pdfCheckVacation"></span> Vacation Leave</span>
+        <span><span class="pdf-checkbox" id="pdfCheckSick"></span> Sick Leave</span>
+      </div>
+      <div class="pdf-row">
+        <span><span class="pdf-checkbox" id="pdfCheckPaternity"></span> Paternity Leave</span>
+        <span><span class="pdf-checkbox" id="pdfCheckMaternity"></span> Maternity Leave</span>
+        <span>Others, please specify <span class="pdf-fill" id="pdfOthersSpecify"></span></span>
+      </div>
+
+      <p class="pdf-section-title">Reason:</p>
+      <p class="pdf-reason" id="pdfReason"></p>
+
+      <div class="pdf-signature-block">
+        <div class="pdf-signature-line"></div>
+        <span>Employee's Signature</span>
+      </div>
+
+      <div class="pdf-approval-grid">
+        <div>
+          <p class="pdf-section-title">To be accomplished by Managers/ Head Dept.</p>
+          <p>Leave is <span class="pdf-checkbox"></span>Authorized <span class="pdf-checkbox"></span>Unauthorized</p>
+        </div>
+        <div>
+          <p class="pdf-section-title">To be accomplished by HRD</p>
+          <p><span class="pdf-checkbox" id="pdfWithPayBox"></span>with pay <span class="pdf-checkbox" id="pdfWithoutPayBox"></span>without pay</p>
+        </div>
+      </div>
+
+      <div class="pdf-approval-grid">
+        <div>
+          <p><strong>APPROVALS:</strong></p>
+          <p class="pdf-fillline">Date</p>
+        </div>
+        <div>
+          <p class="pdf-fillline">Balance to date</p>
+          <p class="pdf-fillline">Availment to date</p>
+          <p class="pdf-fillline">NEW Balance</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="libs/jspdf.umd.min.js"></script>
+  <script src="libs/html2canvas.min.js"></script>
   <script src="config.js"></script>
   <script src="script.js"></script>
 </body>

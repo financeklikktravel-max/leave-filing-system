@@ -1,0 +1,97 @@
+#pdfTemplateWrap {
+  position: fixed;
+  top: 0;
+  left: -99999px;
+}
+
+.pdf-page {
+  width: 816px;
+  padding: 40px 48px 48px;
+  background: #ffffff;
+  color: #111111;
+  font-family: Arial, Helvetica, sans-serif;
+  box-sizing: border-box;
+}
+
+.pdf-letterhead {
+  width: 100%;
+  display: block;
+  margin-bottom: 18px;
+}
+
+.pdf-title {
+  text-align: center;
+  font-size: 20px;
+  letter-spacing: 1px;
+  margin: 0 0 22px;
+}
+
+.pdf-row {
+  display: flex;
+  gap: 32px;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.pdf-row span {
+  white-space: nowrap;
+}
+
+.pdf-section-title {
+  font-size: 14px;
+  margin: 18px 0 8px;
+}
+
+.pdf-checkbox {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 1px solid #111111;
+  margin-right: 4px;
+  vertical-align: middle;
+  text-align: center;
+  line-height: 14px;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.pdf-fill {
+  display: inline-block;
+  min-width: 160px;
+  border-bottom: 1px solid #111111;
+}
+
+.pdf-reason {
+  min-height: 40px;
+  border-bottom: 1px solid #111111;
+  font-size: 14px;
+  padding-bottom: 6px;
+}
+
+.pdf-signature-block {
+  margin-top: 60px;
+  text-align: center;
+  width: 260px;
+  margin-left: auto;
+  margin-right: 60px;
+  font-size: 13px;
+}
+
+.pdf-signature-line {
+  border-bottom: 1px solid #111111;
+  height: 40px;
+}
+
+.pdf-approval-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 30px;
+  font-size: 14px;
+}
+
+.pdf-fillline {
+  border-bottom: 1px solid #111111;
+  padding-bottom: 14px;
+  margin: 0 0 10px;
+}

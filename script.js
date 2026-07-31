@@ -38,6 +38,54 @@ form.startDate.addEventListener("change", updateDaysPreview);
 form.endDate.addEventListener("change", updateDaysPreview);
 form.leaveType.addEventListener("change", updateDaysPreview);
 
+function formatDisplayDate(dateString) {
+  const d = new Date(dateString + "T00:00:00");
+  return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+}
+
+function addDays(dateString, amount) {
+  const d = new Date(dateString + "T00:00:00");
+  d.setDate(d.getDate() + amount);
+  return d.toISOString().slice(0, 10);
+}
+
+function setCheckbox(id, checked) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = checked ? "✓" : "";
+}
+
+async function downloadLeaveFormPdf(payload, daysRequested) {
+  document.getElementById("pdfName").textContent = payload.name;
+  document.getElementById("pdfSubmitDate").textContent = formatDisplayDate(new Date().toISOString().slice(0, 10));
+  document.getElementById("pdfPosition").textContent = payload.position;
+  document.getElementById("pdfBranch").textContent = payload.branch;
+  document.getElementById("pdfStartDate").textContent = formatDisplayDate(payload.startDate);
+  document.getElementById("pdfEndDate").textContent = formatDisplayDate(payload.endDate);
+  document.getElementById("pdfDays").textContent = daysRequested;
+  document.getElementById("pdfBackToWork").textContent = formatDisplayDate(addDays(payload.endDate, 1));
+  document.getElementById("pdfReason").textContent = payload.reason;
+
+  setCheckbox("pdfCheckVacation", payload.leaveType === "Leave With Pay");
+  setCheckbox("pdfCheckSick", payload.leaveType === "Sick Leave");
+  setCheckbox("pdfCheckPaternity", false);
+  setCheckbox("pdfCheckMaternity", false);
+  document.getElementById("pdfOthersSpecify").textContent = payload.leaveType === "Leave W/O Pay" ? "Leave Without Pay" : "";
+
+  setCheckbox("pdfWithPayBox", payload.leaveType !== "Leave W/O Pay");
+  setCheckbox("pdfWithoutPayBox", payload.leaveType === "Leave W/O Pay");
+
+  const template = document.getElementById("leaveFormTemplate");
+  const canvas = await html2canvas(template, { scale: 2, backgroundColor: "#ffffff" });
+  const imgData = canvas.toDataURL("image/png");
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ unit: "px", format: [canvas.width, canvas.height] });
+  pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
+
+  const fileSafeName = payload.name.replace(/[^a-z0-9]+/gi, "-");
+  pdf.save(`Leave-Form-${fileSafeName}-${payload.startDate}.pdf`);
+}
+
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -57,6 +105,8 @@ form.addEventListener("submit", async (e) => {
     action: "submit",
     name: form.name.value.trim(),
     email: form.email.value.trim(),
+    position: form.position.value.trim(),
+    branch: form.branch.value.trim(),
     leaveType: form.leaveType.value,
     startDate,
     endDate,
@@ -75,7 +125,12 @@ form.addEventListener("submit", async (e) => {
     const data = await response.json();
 
     if (data.status === "pending") {
-      showResult(`Request submitted (${data.daysRequested} day(s)) and is now pending approval. A confirmation email has been sent.`, false);
+      showResult(`Request submitted (${data.daysRequested} day(s)) and is now pending approval. A confirmation email has been sent, and your leave form PDF is downloading.`, false);
+      try {
+        await downloadLeaveFormPdf(payload, data.daysRequested);
+      } catch (pdfErr) {
+        showResult("Request submitted, but the leave form PDF could not be generated.", true);
+      }
       form.reset();
       daysPreview.classList.add("hidden");
     } else if (data.status === "rejected") {
