@@ -27,7 +27,7 @@ const LEAVE_TYPE_MATCH = {
 
 // Leave types listed here are never checked against balance and never
 // deducted -- treated as unlimited.
-const UNLIMITED_LEAVE_TYPES = ["Leave With Pay"];
+const UNLIMITED_LEAVE_TYPES = ["Leave W/O Pay"];
 
 function doPost(e) {
   const lock = LockService.getScriptLock();

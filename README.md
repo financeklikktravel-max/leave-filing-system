@@ -83,11 +83,11 @@ https://docs.google.com/spreadsheets/d/13boJkfbEZi9qm_5a4r10IC6EeLNdH82eDQdGlg-M
 
 ## Notes
 
-- **Leave With Pay is unlimited**: it's never checked against balance and
+- **Leave W/O Pay is unlimited**: it's never checked against balance and
   never deducted, regardless of what's in the credits sheet for that column.
   This is controlled by `UNLIMITED_LEAVE_TYPES` near the top of `Code.gs` —
   add other leave type names there if you want them to behave the same way.
-- **Leave W/O Pay** is deducted the same as Sick Leave, since the sheet gives
+- **Leave With Pay** is deducted the same as Sick Leave, since the sheet gives
   it a tracked balance (5 days) rather than treating it as unlimited.
 - Insufficient credits are still auto-rejected at submission time — approvers
   only see requests that already passed the credit check. Approving
