@@ -46,7 +46,10 @@ function formatDisplayDate(dateString) {
 function addDays(dateString, amount) {
   const d = new Date(dateString + "T00:00:00");
   d.setDate(d.getDate() + amount);
-  return d.toISOString().slice(0, 10);
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 function setCheckbox(id, checked) {
