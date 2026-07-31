@@ -38,6 +38,72 @@ form.startDate.addEventListener("change", updateDaysPreview);
 form.endDate.addEventListener("change", updateDaysPreview);
 form.leaveType.addEventListener("change", updateDaysPreview);
 
+const signatureCanvas = document.getElementById("signatureCanvas");
+const sigCtx = signatureCanvas.getContext("2d");
+const clearSignatureBtn = document.getElementById("clearSignatureBtn");
+let isDrawing = false;
+let hasSignature = false;
+
+function sizeSignatureCanvas() {
+  const rect = signatureCanvas.getBoundingClientRect();
+  const imgData = hasSignature ? signatureCanvas.toDataURL("image/png") : null;
+  signatureCanvas.width = rect.width;
+  signatureCanvas.height = rect.height;
+  sigCtx.fillStyle = "#ffffff";
+  sigCtx.fillRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+  if (imgData) {
+    const img = new Image();
+    img.onload = () => sigCtx.drawImage(img, 0, 0, signatureCanvas.width, signatureCanvas.height);
+    img.src = imgData;
+  }
+}
+
+window.addEventListener("resize", sizeSignatureCanvas);
+sizeSignatureCanvas();
+
+function getSignaturePos(e) {
+  const rect = signatureCanvas.getBoundingClientRect();
+  const point = e.touches ? e.touches[0] : e;
+  return { x: point.clientX - rect.left, y: point.clientY - rect.top };
+}
+
+function startSignature(e) {
+  isDrawing = true;
+  hasSignature = true;
+  const pos = getSignaturePos(e);
+  sigCtx.beginPath();
+  sigCtx.moveTo(pos.x, pos.y);
+  e.preventDefault();
+}
+
+function drawSignature(e) {
+  if (!isDrawing) return;
+  const pos = getSignaturePos(e);
+  sigCtx.strokeStyle = "#111111";
+  sigCtx.lineWidth = 2;
+  sigCtx.lineCap = "round";
+  sigCtx.lineTo(pos.x, pos.y);
+  sigCtx.stroke();
+  e.preventDefault();
+}
+
+function stopSignature() {
+  isDrawing = false;
+}
+
+signatureCanvas.addEventListener("mousedown", startSignature);
+signatureCanvas.addEventListener("mousemove", drawSignature);
+window.addEventListener("mouseup", stopSignature);
+signatureCanvas.addEventListener("touchstart", startSignature, { passive: false });
+signatureCanvas.addEventListener("touchmove", drawSignature, { passive: false });
+signatureCanvas.addEventListener("touchend", stopSignature);
+
+clearSignatureBtn.addEventListener("click", () => {
+  sigCtx.fillStyle = "#ffffff";
+  sigCtx.fillRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+  hasSignature = false;
+});
+
 function formatDisplayDate(dateString) {
   const d = new Date(dateString + "T00:00:00");
   return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
@@ -77,6 +143,8 @@ async function downloadLeaveFormPdf(payload, daysRequested) {
   setCheckbox("pdfWithPayBox", payload.leaveType !== "Leave W/O Pay");
   setCheckbox("pdfWithoutPayBox", payload.leaveType === "Leave W/O Pay");
 
+  document.getElementById("pdfSignatureImg").src = signatureCanvas.toDataURL("image/png");
+
   const template = document.getElementById("leaveFormTemplate");
   const canvas = await html2canvas(template, { scale: 2, backgroundColor: "#ffffff" });
   const imgData = canvas.toDataURL("image/png");
@@ -101,6 +169,11 @@ form.addEventListener("submit", async (e) => {
   const endDate = form.endDate.value;
   if (new Date(endDate) < new Date(startDate)) {
     showResult("End date cannot be before start date.", true);
+    return;
+  }
+
+  if (!hasSignature) {
+    showResult("Please sign in the signature box before submitting.", true);
     return;
   }
 
@@ -136,6 +209,7 @@ form.addEventListener("submit", async (e) => {
       }
       form.reset();
       daysPreview.classList.add("hidden");
+      clearSignatureBtn.click();
     } else if (data.status === "rejected") {
       showResult(`Request submitted but rejected: ${data.message}`, true);
     } else {

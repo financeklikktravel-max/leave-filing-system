@@ -78,6 +78,12 @@
       <label for="reason">Reason</label>
       <textarea id="reason" name="reason" rows="3" required></textarea>
 
+      <label>Signature</label>
+      <div class="signature-box">
+        <canvas id="signatureCanvas"></canvas>
+        <button type="button" id="clearSignatureBtn" class="secondary">Clear</button>
+      </div>
+
       <button type="submit" id="submitBtn">Submit Request</button>
     </form>
 
@@ -119,6 +125,7 @@
       <p class="pdf-reason" id="pdfReason"></p>
 
       <div class="pdf-signature-block">
+        <img id="pdfSignatureImg" class="pdf-signature-img" alt="">
         <div class="pdf-signature-line"></div>
         <span>Employee's Signature</span>
       </div>
