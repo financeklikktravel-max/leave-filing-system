@@ -462,3 +462,46 @@ function resetTestData() {
 
   Logger.log("Reset complete: all credits back to 5/5/5, Leave Requests cleared.");
 }
+
+// One-time cleanup for 2026-07-31: deletes the test row logged while
+// verifying the unlimited-leave-type swap, and corrects Justine Mark Dela
+// Cruz's Leave With Pay balance (was left at 5 instead of 4, since her
+// request was approved while Leave With Pay was briefly unlimited). Run
+// this once from the Apps Script editor, then delete this function.
+function cleanupJuly31Fixes() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const creditsSheet = ss.getSheets()[0];
+  const requestsSheet = ss.getSheetByName(REQUESTS_SHEET);
+
+  // Delete the test row (Erinne Jelle Cruz, "TEST unlimited check").
+  const requestsData = requestsSheet.getDataRange().getValues();
+  const requestsHeader = normalizeHeaderRow(requestsData[0]);
+  const cols = requestsColumnIndexes(requestsHeader);
+  const testRowIndex = findRowByColumnValue(requestsData, cols.requestId, "0ca2d312-9273-475a-bd1a-c74b27d4b4c8");
+  if (testRowIndex !== -1) {
+    requestsSheet.deleteRow(testRowIndex + 1);
+  }
+
+  // Correct Justine Mark Dela Cruz's Leave With Pay: 5 -> 4.
+  const creditsData = creditsSheet.getDataRange().getValues();
+  const creditsHeader = normalizeHeaderRow(creditsData[0]);
+  const nameCol = creditsHeader.findIndex((h) => h.indexOf("NAME") !== -1);
+  const withPayCol = creditsHeader.findIndex((h) => h.indexOf("WITH PAY") !== -1);
+  const remainingCol = creditsHeader.findIndex((h) => h.indexOf("REMAINING") !== -1);
+  const justineRow = findRowByColumnValue(creditsData, nameCol, "Justine Mark Dela Cruz");
+
+  if (justineRow !== -1 && withPayCol !== -1) {
+    creditsSheet.getRange(justineRow + 1, withPayCol + 1).setValue(4);
+    if (remainingCol !== -1) {
+      const row = creditsData[justineRow].slice();
+      row[withPayCol] = 4;
+      const totalRemaining = Object.keys(LEAVE_TYPE_MATCH)
+        .map((type) => creditsHeader.findIndex((h) => h.indexOf(LEAVE_TYPE_MATCH[type]) !== -1))
+        .filter((col) => col !== -1)
+        .reduce((sum, col) => sum + (Number(row[col]) || 0), 0);
+      creditsSheet.getRange(justineRow + 1, remainingCol + 1).setValue(totalRemaining);
+    }
+  }
+
+  Logger.log("Cleanup complete: test row removed, Justine Mark Dela Cruz Leave With Pay set to 4.");
+}
