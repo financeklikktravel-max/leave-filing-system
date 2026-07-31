@@ -25,6 +25,10 @@ const LEAVE_TYPE_MATCH = {
   "Sick Leave": "SICK",
 };
 
+// Leave types listed here are never checked against balance and never
+// deducted -- treated as unlimited.
+const UNLIMITED_LEAVE_TYPES = ["Leave With Pay"];
+
 function doPost(e) {
   const lock = LockService.getScriptLock();
   try {
@@ -103,9 +107,10 @@ function processLeaveRequest(data) {
     return { status: "rejected", message };
   }
 
+  const isUnlimited = UNLIMITED_LEAVE_TYPES.indexOf(data.leaveType) !== -1;
   const currentCredits = Number(creditsData[employeeRowIndex][creditCol]) || 0;
 
-  if (currentCredits < daysRequested) {
+  if (!isUnlimited && currentCredits < daysRequested) {
     const message = `Insufficient ${data.leaveType} credits. Available: ${currentCredits}, requested: ${daysRequested}.`;
     logRequest(requestsSheet, timestamp, data, daysRequested, "Rejected - Insufficient credits", "", requestId);
     notifySubmission(data, daysRequested, "rejected", message);
@@ -303,13 +308,17 @@ function decideRequest(token, requestId, decision) {
     return { status: "error", message: "Could not locate employee or leave type in credits sheet." };
   }
 
+  const isUnlimited = UNLIMITED_LEAVE_TYPES.indexOf(leaveType) !== -1;
   const currentCredits = Number(creditsData[employeeRowIndex][creditCol]) || 0;
-  if (currentCredits < daysRequested) {
+
+  if (!isUnlimited && currentCredits < daysRequested) {
     return { status: "error", message: `Cannot approve: only ${currentCredits} ${leaveType} credit(s) remain, ${daysRequested} requested.` };
   }
 
-  const updatedCredits = currentCredits - daysRequested;
-  creditsSheet.getRange(employeeRowIndex + 1, creditCol + 1).setValue(updatedCredits);
+  const updatedCredits = isUnlimited ? currentCredits : currentCredits - daysRequested;
+  if (!isUnlimited) {
+    creditsSheet.getRange(employeeRowIndex + 1, creditCol + 1).setValue(updatedCredits);
+  }
 
   if (remainingCol !== -1) {
     const row = creditsData[employeeRowIndex].slice();
@@ -334,9 +343,10 @@ function decideRequest(token, requestId, decision) {
 function notifyEmployee(email, name, leaveType, outcome, remainingCredits) {
   if (!email) return;
   try {
+    const isUnlimited = UNLIMITED_LEAVE_TYPES.indexOf(leaveType) !== -1;
     const subject = outcome === "approved" ? "Leave Request Approved" : "Leave Request Rejected";
     const body = outcome === "approved"
-      ? `Hi ${name},\n\nYour ${leaveType} leave request has been approved.\nRemaining ${leaveType} credits: ${remainingCredits}.\n\nThank you.`
+      ? `Hi ${name},\n\nYour ${leaveType} leave request has been approved.\n${isUnlimited ? `${leaveType} is unlimited and is not deducted from your credits.` : `Remaining ${leaveType} credits: ${remainingCredits}.`}\n\nThank you.`
       : `Hi ${name},\n\nYour ${leaveType} leave request has been rejected by your approver.\n\nThank you.`;
     MailApp.sendEmail(email, subject, body);
   } catch (mailErr) {
