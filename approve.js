@@ -48,10 +48,80 @@ async function callBackend(payload) {
   return response.json();
 }
 
+const approverSignatureCanvas = document.getElementById("approverSignatureCanvas");
+const approverSigCtx = approverSignatureCanvas.getContext("2d");
+const clearApproverSignatureBtn = document.getElementById("clearApproverSignatureBtn");
+let isDrawingApproverSig = false;
+let hasApproverSignature = false;
+
+function sizeApproverSignatureCanvas() {
+  const rect = approverSignatureCanvas.getBoundingClientRect();
+  const saved = sessionStorage.getItem("approverSignature");
+  approverSignatureCanvas.width = rect.width;
+  approverSignatureCanvas.height = rect.height;
+  approverSigCtx.fillStyle = "#ffffff";
+  approverSigCtx.fillRect(0, 0, approverSignatureCanvas.width, approverSignatureCanvas.height);
+  if (saved) {
+    const img = new Image();
+    img.onload = () => approverSigCtx.drawImage(img, 0, 0, approverSignatureCanvas.width, approverSignatureCanvas.height);
+    img.src = saved;
+    hasApproverSignature = true;
+  }
+}
+
+window.addEventListener("resize", sizeApproverSignatureCanvas);
+
+function getApproverSigPos(e) {
+  const rect = approverSignatureCanvas.getBoundingClientRect();
+  const point = e.touches ? e.touches[0] : e;
+  return { x: point.clientX - rect.left, y: point.clientY - rect.top };
+}
+
+function startApproverSig(e) {
+  isDrawingApproverSig = true;
+  hasApproverSignature = true;
+  const pos = getApproverSigPos(e);
+  approverSigCtx.beginPath();
+  approverSigCtx.moveTo(pos.x, pos.y);
+  e.preventDefault();
+}
+
+function drawApproverSig(e) {
+  if (!isDrawingApproverSig) return;
+  const pos = getApproverSigPos(e);
+  approverSigCtx.strokeStyle = "#111111";
+  approverSigCtx.lineWidth = 2;
+  approverSigCtx.lineCap = "round";
+  approverSigCtx.lineTo(pos.x, pos.y);
+  approverSigCtx.stroke();
+  e.preventDefault();
+}
+
+function stopApproverSig() {
+  if (!isDrawingApproverSig) return;
+  isDrawingApproverSig = false;
+  sessionStorage.setItem("approverSignature", approverSignatureCanvas.toDataURL("image/png"));
+}
+
+approverSignatureCanvas.addEventListener("mousedown", startApproverSig);
+approverSignatureCanvas.addEventListener("mousemove", drawApproverSig);
+window.addEventListener("mouseup", stopApproverSig);
+approverSignatureCanvas.addEventListener("touchstart", startApproverSig, { passive: false });
+approverSignatureCanvas.addEventListener("touchmove", drawApproverSig, { passive: false });
+approverSignatureCanvas.addEventListener("touchend", stopApproverSig);
+
+clearApproverSignatureBtn.addEventListener("click", () => {
+  approverSigCtx.fillStyle = "#ffffff";
+  approverSigCtx.fillRect(0, 0, approverSignatureCanvas.width, approverSignatureCanvas.height);
+  hasApproverSignature = false;
+  sessionStorage.removeItem("approverSignature");
+});
+
 function showDashboard(fullName) {
   loginCard.classList.add("hidden");
   dashboardCard.classList.remove("hidden");
   welcomeMessage.textContent = `Signed in as ${fullName}`;
+  sizeApproverSignatureCanvas();
   switchTab("pending");
 }
 
@@ -224,10 +294,75 @@ function renderHistory(requests) {
   });
 }
 
+function formatDisplayDate(dateString) {
+  const d = new Date(dateString + "T00:00:00");
+  return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+}
+
+function addDays(dateString, amount) {
+  const d = new Date(dateString + "T00:00:00");
+  d.setDate(d.getDate() + amount);
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function setCheckbox(id, checked) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = checked ? "✓" : "";
+}
+
+async function downloadApprovedLeaveFormPdf(pdfData) {
+  document.getElementById("pdfName").textContent = pdfData.name;
+  document.getElementById("pdfSubmitDate").textContent = pdfData.decidedAt;
+  document.getElementById("pdfPosition").textContent = pdfData.position;
+  document.getElementById("pdfBranch").textContent = pdfData.branch;
+  document.getElementById("pdfStartDate").textContent = formatDisplayDate(pdfData.startDate);
+  document.getElementById("pdfEndDate").textContent = formatDisplayDate(pdfData.endDate);
+  document.getElementById("pdfDays").textContent = pdfData.daysRequested;
+  document.getElementById("pdfBackToWork").textContent = formatDisplayDate(addDays(pdfData.endDate, 1));
+  document.getElementById("pdfReason").textContent = pdfData.reason;
+
+  setCheckbox("pdfCheckVacation", pdfData.leaveType === "Leave With Pay");
+  setCheckbox("pdfCheckSick", pdfData.leaveType === "Sick Leave");
+  setCheckbox("pdfCheckPaternity", false);
+  setCheckbox("pdfCheckMaternity", false);
+  document.getElementById("pdfOthersSpecify").textContent = pdfData.leaveType === "Leave W/O Pay" ? "Leave Without Pay" : "";
+
+  setCheckbox("pdfWithPayBox", pdfData.leaveType !== "Leave W/O Pay");
+  setCheckbox("pdfWithoutPayBox", pdfData.leaveType === "Leave W/O Pay");
+
+  document.getElementById("pdfSignatureImg").src = pdfData.employeeSignature || "";
+  document.getElementById("pdfApproverSignatureImg").src = sessionStorage.getItem("approverSignature") || "";
+
+  document.getElementById("pdfApprovalDate").textContent = "Date  " + pdfData.decidedAt;
+  const balanceLabel = pdfData.isUnlimited ? "days used" : "days";
+  document.getElementById("pdfBalanceToDate").textContent = `Balance to date  ${pdfData.balanceBefore} ${balanceLabel}`;
+  document.getElementById("pdfAvailmentToDate").textContent = `Availment to date  ${pdfData.daysRequested} ${balanceLabel}`;
+  document.getElementById("pdfNewBalance").textContent = `NEW Balance  ${pdfData.balanceAfter} ${balanceLabel}`;
+
+  const template = document.getElementById("leaveFormTemplate");
+  const canvas = await html2canvas(template, { scale: 2, backgroundColor: "#ffffff" });
+  const imgData = canvas.toDataURL("image/png");
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ unit: "px", format: [canvas.width, canvas.height] });
+  pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
+
+  const fileSafeName = pdfData.name.replace(/[^a-z0-9]+/gi, "-");
+  pdf.save(`Leave-Form-${fileSafeName}-${pdfData.startDate}-Approved.pdf`);
+}
+
 async function decide(req, decision, item) {
   const session = getSession();
   if (!session) {
     showLogin();
+    return;
+  }
+
+  if (decision === "approve" && !hasApproverSignature) {
+    showMessage(dashboardResult, "Please sign in the signature box above before approving.", true);
     return;
   }
 
@@ -252,6 +387,13 @@ async function decide(req, decision, item) {
       item.remove();
       if (!requestList.children.length) {
         requestList.innerHTML = '<p class="empty-state">No pending requests right now.</p>';
+      }
+      if (data.decision === "approved" && data.pdfData) {
+        try {
+          await downloadApprovedLeaveFormPdf(data.pdfData);
+        } catch (pdfErr) {
+          showMessage(dashboardResult, "Approved, but the leave form PDF could not be generated.", true);
+        }
       }
     } else {
       showMessage(dashboardResult, data.message || "Could not process this request.", true);

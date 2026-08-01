@@ -7,6 +7,7 @@
 <link rel="icon" href="logo.png">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="approve.css">
+<link rel="stylesheet" href="pdfform.css">
 </head>
 <body>
   <div class="card wide" id="loginCard">
@@ -38,6 +39,12 @@
       <button type="button" id="logoutBtn" class="secondary">Log Out</button>
     </div>
 
+    <div class="signature-box approver-signature-box">
+      <label>Your Signature (used when you approve a request)</label>
+      <canvas id="approverSignatureCanvas"></canvas>
+      <button type="button" id="clearApproverSignatureBtn" class="secondary">Clear</button>
+    </div>
+
     <div class="tabs">
       <button type="button" id="tabPending" class="tab active">Pending</button>
       <button type="button" id="tabHistory" class="tab">History</button>
@@ -47,6 +54,80 @@
     <div id="requestList"></div>
   </div>
 
+  <div id="pdfTemplateWrap">
+    <div id="leaveFormTemplate" class="pdf-page">
+      <img src="letterhead.png" class="pdf-letterhead" alt="Klikk Travel Express">
+      <h2 class="pdf-title">LEAVE FORM</h2>
+
+      <div class="pdf-row">
+        <span><strong>Employee's Name:</strong> <span id="pdfName"></span></span>
+        <span><strong>Date:</strong> <span id="pdfSubmitDate"></span></span>
+      </div>
+      <div class="pdf-row"><span><strong>Position:</strong> <span id="pdfPosition"></span></span></div>
+      <div class="pdf-row"><span><strong>Branch:</strong> <span id="pdfBranch"></span></span></div>
+
+      <p class="pdf-section-title">Dates Requested:</p>
+      <div class="pdf-row">
+        <span><strong>From</strong> <span id="pdfStartDate"></span></span>
+        <span><strong>To</strong> <span id="pdfEndDate"></span></span>
+        <span><strong>No. of days</strong> <span id="pdfDays"></span></span>
+        <span><strong>Back to work</strong> <span id="pdfBackToWork"></span></span>
+      </div>
+
+      <p class="pdf-section-title">Nature of Leave:</p>
+      <div class="pdf-row">
+        <span><span class="pdf-checkbox" id="pdfCheckVacation"></span> Vacation Leave</span>
+        <span><span class="pdf-checkbox" id="pdfCheckSick"></span> Sick Leave</span>
+      </div>
+      <div class="pdf-row">
+        <span><span class="pdf-checkbox" id="pdfCheckPaternity"></span> Paternity Leave</span>
+        <span><span class="pdf-checkbox" id="pdfCheckMaternity"></span> Maternity Leave</span>
+        <span>Others, please specify <span class="pdf-fill" id="pdfOthersSpecify"></span></span>
+      </div>
+
+      <p class="pdf-section-title">Reason:</p>
+      <p class="pdf-reason" id="pdfReason"></p>
+
+      <div class="pdf-signature-row">
+        <div class="pdf-signature-block">
+          <img id="pdfSignatureImg" class="pdf-signature-img" alt="">
+          <div class="pdf-signature-line"></div>
+          <span>Employee's Signature</span>
+        </div>
+        <div class="pdf-signature-block">
+          <img id="pdfApproverSignatureImg" class="pdf-signature-img" alt="">
+          <div class="pdf-signature-line"></div>
+          <span>Approver's Signature</span>
+        </div>
+      </div>
+
+      <div class="pdf-approval-grid">
+        <div>
+          <p class="pdf-section-title">To be accomplished by Managers/ Head Dept.</p>
+          <p><span class="pdf-checkbox" id="pdfAuthorizedBox">✓</span>Authorized <span class="pdf-checkbox"></span>Unauthorized</p>
+        </div>
+        <div>
+          <p class="pdf-section-title">To be accomplished by HRD</p>
+          <p><span class="pdf-checkbox" id="pdfWithPayBox"></span>with pay <span class="pdf-checkbox" id="pdfWithoutPayBox"></span>without pay</p>
+        </div>
+      </div>
+
+      <div class="pdf-approval-grid">
+        <div>
+          <p><strong>APPROVALS:</strong></p>
+          <p class="pdf-fillline" id="pdfApprovalDate">Date</p>
+        </div>
+        <div>
+          <p class="pdf-fillline" id="pdfBalanceToDate">Balance to date</p>
+          <p class="pdf-fillline" id="pdfAvailmentToDate">Availment to date</p>
+          <p class="pdf-fillline" id="pdfNewBalance">NEW Balance</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="libs/jspdf.umd.min.js"></script>
+  <script src="libs/html2canvas.min.js"></script>
   <script src="config.js"></script>
   <script src="approve.js"></script>
 </body>

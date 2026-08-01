@@ -9,7 +9,7 @@
 // Expects a tab named exactly "Leave Requests" with columns: Timestamp |
 // Employee Name | Email | Leave Type | Start Date | End Date |
 // Days Requested | Reason | Status | Remaining Credits | Request ID |
-// Approved By | Decided At.
+// Approved By | Decided At | Position | Branch | Employee Signature.
 //
 // Expects a tab named exactly "Approvers" with columns: Username |
 // Password Hash | Full Name. See generateApproverHash() below for creating
@@ -138,6 +138,9 @@ function logRequest(sheet, timestamp, data, daysRequested, status, remainingCred
     requestId,
     "",
     "",
+    data.position || "",
+    data.branch || "",
+    data.signature || "",
   ]);
 }
 
@@ -210,6 +213,9 @@ function listPendingRequests(token) {
         endDate: formatDateCell(data[i][cols.endDate]),
         daysRequested: data[i][cols.daysRequested],
         reason: data[i][cols.reason],
+        position: cols.position !== -1 ? data[i][cols.position] : "",
+        branch: cols.branch !== -1 ? data[i][cols.branch] : "",
+        employeeSignature: cols.employeeSignature !== -1 ? data[i][cols.employeeSignature] : "",
       });
     }
   }
@@ -283,6 +289,12 @@ function decideRequest(token, requestId, decision) {
   const employeeEmail = data[rowIndex][cols.email];
   const leaveType = data[rowIndex][cols.leaveType];
   const daysRequested = Number(data[rowIndex][cols.daysRequested]) || 0;
+  const startDate = formatDateCell(data[rowIndex][cols.startDate]);
+  const endDate = formatDateCell(data[rowIndex][cols.endDate]);
+  const reason = data[rowIndex][cols.reason];
+  const position = cols.position !== -1 ? data[rowIndex][cols.position] : "";
+  const branch = cols.branch !== -1 ? data[rowIndex][cols.branch] : "";
+  const employeeSignature = cols.employeeSignature !== -1 ? data[rowIndex][cols.employeeSignature] : "";
   const decidedAt = new Date();
   const sheetRow = rowIndex + 1;
 
@@ -338,7 +350,26 @@ function decideRequest(token, requestId, decision) {
 
   notifyEmployee(employeeEmail, employeeName, leaveType, "approved", updatedCredits);
 
-  return { status: "ok", decision: "approved" };
+  return {
+    status: "ok",
+    decision: "approved",
+    pdfData: {
+      name: employeeName,
+      position: position,
+      branch: branch,
+      leaveType: leaveType,
+      startDate: startDate,
+      endDate: endDate,
+      daysRequested: daysRequested,
+      reason: reason,
+      employeeSignature: employeeSignature,
+      isUnlimited: isUnlimited,
+      balanceBefore: currentCredits,
+      balanceAfter: updatedCredits,
+      approverName: session.fullName,
+      decidedAt: Utilities.formatDate(decidedAt, Session.getScriptTimeZone(), "MMM d, yyyy"),
+    },
+  };
 }
 
 function notifyEmployee(email, name, leaveType, outcome, remainingCredits) {
@@ -404,6 +435,9 @@ function requestsColumnIndexes(headerRow) {
     requestId: headerRow.findIndex((h) => h.indexOf("REQUEST ID") !== -1),
     decidedBy: headerRow.findIndex((h) => h.indexOf("APPROVED BY") !== -1),
     decidedAt: headerRow.findIndex((h) => h.indexOf("DECIDED AT") !== -1),
+    position: headerRow.findIndex((h) => h.indexOf("POSITION") !== -1),
+    branch: headerRow.findIndex((h) => h.indexOf("BRANCH") !== -1),
+    employeeSignature: headerRow.findIndex((h) => h.indexOf("SIGNATURE") !== -1),
   };
 }
 

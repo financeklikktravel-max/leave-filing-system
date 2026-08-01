@@ -187,6 +187,7 @@ form.addEventListener("submit", async (e) => {
     startDate,
     endDate,
     reason: form.reason.value.trim(),
+    signature: signatureCanvas.toDataURL("image/png"),
   };
 
   submitBtn.disabled = true;

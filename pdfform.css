@@ -85,6 +85,19 @@
   object-fit: contain;
 }
 
+.pdf-signature-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 40px;
+}
+
+.pdf-signature-row .pdf-signature-block {
+  margin: 0;
+  margin-left: 0;
+  margin-right: 0;
+  width: 220px;
+}
+
 .pdf-signature-line {
   border-bottom: 1px solid #111111;
   height: 20px;

@@ -3,24 +3,32 @@
 A lightweight employee leave request form. Submissions are validated against
 each employee's leave credit balance (auto-rejected if insufficient), then
 held as **pending** until an approver reviews them on a separate login-gated
-page. Approving deducts the days used and notifies the employee by email. On
-successful submission, a filled-out copy of the official Leave Form is also
-auto-downloaded as a PDF.
+page. Approving deducts the days used and notifies the employee by email.
+Both submitting and approving auto-download a filled-out copy of the
+official Leave Form as a PDF, digitally signed by whoever is acting at that
+step (employee on submission, approver on approval).
 
 ## How it works
 
-- `index.html` / `style.css` / `script.js` — the web form employees fill out.
+- `index.html` / `style.css` / `script.js` — the web form employees fill out,
+  including a signature pad. On submission, downloads a PDF of the Leave Form
+  with the employee's details and signature filled in (approval sections
+  blank).
 - `approve.html` / `approve.css` / `approve.js` — the approver-only page:
-  login with a username/password, then approve or reject pending requests.
+  login with a username/password, sign once (reused for the whole session),
+  then approve or reject pending requests. Approving downloads a PDF of the
+  same Leave Form with both the employee's and approver's signatures, the
+  Authorized/with-pay checkboxes, and the balance/availment figures filled
+  in.
 - `apps-script/Code.gs` — a Google Apps Script backend (deployed as a Web App)
   that receives submissions, checks credits, authenticates approvers, and
-  deducts credits / emails the employee once a request is decided.
-- `pdfform.css` + the hidden template in `index.html` + `libs/jspdf.umd.min.js`
-  and `libs/html2canvas.min.js` — render the official Leave Form layout
-  (using `letterhead.png`) and auto-download it as a PDF right after a
-  successful submission. Employee-fillable fields (name, position, branch,
-  dates, leave type, reason) are auto-filled; signature and approval/HRD
-  sections are left blank for manual completion.
+  deducts credits / emails the employee once a request is decided. Also
+  stores each submission's Position, Branch, and signature image so they're
+  available later when an approver acts on it.
+- `pdfform.css` + the hidden templates in `index.html` and `approve.html` +
+  `libs/jspdf.umd.min.js` and `libs/html2canvas.min.js` — render the official
+  Leave Form layout (using `letterhead.png`) and turn it into a downloadable
+  PDF via html2canvas + jsPDF (vendored locally, no CDN dependency).
 
 No server hosting is required: the form can be hosted on GitHub Pages (or any
 static host), and the Apps Script Web App acts as the backend, reading and
@@ -46,8 +54,12 @@ https://docs.google.com/spreadsheets/d/13boJkfbEZi9qm_5a4r10IC6EeLNdH82eDQdGlg-M
 2. **Add a tab** to the same spreadsheet, named exactly `Leave Requests`,
    with this header row (rows are appended automatically by the script):
 
-   | Timestamp | Employee Name | Email | Leave Type | Start Date | End Date | Days Requested | Reason | Status | Remaining Credits | Request ID | Approved By | Decided At |
-   |---|---|---|---|---|---|---|---|---|---|---|---|---|
+   | Timestamp | Employee Name | Email | Leave Type | Start Date | End Date | Days Requested | Reason | Status | Remaining Credits | Request ID | Approved By | Decided At | Position | Branch | Employee Signature |
+   |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+
+   The last three columns store what's needed to regenerate the Leave Form
+   PDF at approval time. "Employee Signature" holds a long base64 image
+   string — that's expected, don't edit it manually.
 
 3. **Add another tab**, named exactly `Approvers`, with this header row.
    Add one row per approver (see step 6 for generating the password hash):
